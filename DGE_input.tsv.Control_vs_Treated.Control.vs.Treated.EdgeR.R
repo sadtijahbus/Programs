@@ -1,0 +1,22 @@
+library(limma)
+library(edgeR)
+#data = read.table("/home/vk/gonad/rpkm/sam/fa/le_rpkm_gonad_1/dge_ldls_ldrf.csv",header=TRUE ,row.names = 1 ,com='',sep = '\t')
+#data = read.table("/home/vk/hypo/assembly/ZT17/ref_gf/dge/all/common/sd_ldpm.csv",header=TRUE ,row.names = 1 ,com='',sep = '\t')
+data = read.table("/media/vk/BCKUP2/backup/data/hypo/assembly/castrated_spring_autumn/trinity/new/dge/dge_SC_SI.csv",header=TRUE ,row.names = 1 ,com='',sep = '\t')
+#data = read.table("/home/vk/gonad/fa/output/new/dge_ldes_ldls_abundance_expr>0.1.tsv",header=TRUE ,row.names = 1 ,com='',sep = '\t')
+col_ordering = c(1,2)
+rnaseqMatrix = data[,col_ordering]
+rnaseqMatrix = round(rnaseqMatrix)
+rnaseqMatrix = rnaseqMatrix[rowSums(rnaseqMatrix)>=2,]
+conditions = factor(c(rep("Control", 1), rep("Treated", 1)))
+exp_study = DGEList(counts=rnaseqMatrix, group=conditions)
+exp_study = calcNormFactors(exp_study)
+et = exactTest(exp_study, pair=c("Control", "Treated"), dispersion=0.1)
+tTags = topTags(et,n=NULL)
+write.table(tTags, file='/media/vk/BCKUP2/backup/data/hypo/assembly/castrated_spring_autumn/trinity/new/dge/dge_SC_SI.edgeR.DE_results.xls', sep='\t', quote=F, row.names=T)
+source("/home/vk/hypo/rnaseq_plot_funcs.R")
+#pdf("/media/vk/Seagate Backup Plus Drive/SETH -8 samples.LIU.16 Nov17. F16FTSSWKF1013_SPOcqhE/8/result/Spodoptera_litura/Transcriptome_resequencing_report/BGI_result/3.QuantitativeAnalysis/GeneAndIsoformExp/new/dge_P_Set2Set3_input.Control_vs_Treated.edgeR.DE_results.MA_n_Volcano.pdf")
+pdf("/media/vk/BCKUP2/backup/data/hypo/assembly/castrated_spring_autumn/trinity/new/dge/dge_SC_SI.DE_results.MA_n_Volcano.pdf")
+result_table = tTags$table
+plot_MA_and_Volcano(result_table$logCPM, result_table$logFC, result_table$FDR)
+dev.off()
